@@ -59,7 +59,7 @@ const dispatch = useDispatch()
                 }
                 showToastWithGravity(message)
                 actions.setSubmitting(false);
-                props.navigation.navigate('DemoBlogList')
+                props.navigation.navigate('BlogList')
             })
           
         }}

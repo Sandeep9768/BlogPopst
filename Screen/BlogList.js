@@ -1,125 +1,94 @@
-import React, { Component } from 'react';
+
+import React,{useState,useEffect} from 'react'
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
-  Image,
-  Alert,
-  ScrollView,
   FlatList,
-  Button
+  SafeAreaView,
 } from 'react-native';
-
-export default class BlogList extends Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      data: [
-        {id:1, title: "Lorem ipsum dolor",                  time:"2018-08-01 12:15 pm", image:"https://lorempixel.com/400/200/nature/6/", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean  ligula..."},
-        {id:2, title: "Sit amet, consectetuer",             time:"2018-08-12 12:00 pm", image:"https://lorempixel.com/400/200/nature/5/", description:"Lorem  dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula..."} ,
-        {id:3, title: "Dipiscing elit. Aenean ",            time:"2017-08-05 12:21 pm", image:"https://lorempixel.com/400/200/nature/4/", description:"Lorem ipsum dolor sit , consectetuer  elit. Aenean commodo ligula..."}, 
-        {id:4, title: "Commodo ligula eget dolor.",         time:"2015-08-12 12:00 pm", image:"https://lorempixel.com/400/200/nature/6/", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula..."}, 
-        {id:5, title: "Aenean massa. Cum sociis",           time:"2013-06-12 12:11 pm", image:"https://lorempixel.com/400/200/sports/1/", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.  commodo ligula..."}, 
-        {id:6, title: "Natoque penatibus et magnis",        time:"2018-08-12 12:56 pm", image:"https://lorempixel.com/400/200/nature/8/", description:"Lorem ipsum  sit amet, consectetuer adipiscing elit. Aenean commodo ligula..."}, 
-        {id:7, title: "Dis parturient montes, nascetur",    time:"2018-08-12 12:33 pm", image:"https://lorempixel.com/400/200/nature/1/", description:"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula..."}, 
-        {id:8, title: "Ridiculus mus. Donec quam",          time:"2018-06-12 12:44 pm", image:"https://lorempixel.com/400/200/nature/3/", description:"Lorem ipsum  sit amet, consectetuer adipiscing elit.  commodo ligula..."},
-        {id:9, title: "Felis, ultricies nec, pellentesque", time:"2012-07-12 12:23 pm", image:"https://lorempixel.com/400/200/nature/4/", description:"Lorem ipsum dolor sit amet, consectetuer  elit. Aenean commodo ligula..."},
-      ]
-    };
-  }
-
-  render() {
+import { useDispatch, useSelector } from 'react-redux'
+import {  removeBlog } from '../store/actions'
+import BlogList from './BlogList';
+import { ActivityIndicator, FAB,Button } from 'react-native-paper';
+import BlogService from '../Service.js/Service';
+import { showToastWithGravity } from '../lib/helper';
+export default function BolgList(props) {
+        const [rowData, setrowData] = useState(null)
+        const dispatch = useDispatch()
+        const state = useSelector(state => state)
+        const [loader,setLoader]=useState(false)
+        useEffect(() => {
+          setrowData(state.blogs)
+        }, [state.blogs])
+        
+      const renderItem = ({ item }) => (
+        <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View>
+      <Text style={styles.title}>{item.title}</Text>
+      <Text style={styles.description}>{item.body}</Text>
+           
+          </View>
+        </View>
+        <View style={styles.cardFooter}>
+            <View style={styles.buttonBarSection}>
+              <TouchableOpacity onPress={()=>{
+                props.navigation.navigate('AddBlog', item)
+              }}>     
+                <Text >Edit</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.buttonBarSection}>
+              <TouchableOpacity onPress={()=>{
+                BlogService.deleteApi(item.id).then(response => {
+                  console.log("dvdf v jkvdjkvkj");
+                  showToastWithGravity("Blog deleted successfully")
+                  dispatch(removeBlog(item.id))
+                })
+              }}>
+                <Text >Delete</Text>
+              </TouchableOpacity>
+            </View>
+        </View>
+      </View>
+          );
     return (
-      <View style={styles.container}>
-        <FlatList style={styles.list}
-          data={this.state.data}
-          keyExtractor= {(item) => {
-            return item.id;
-          }}
-          ItemSeparatorComponent={() => {
-            return (
-              <View style={styles.separator}/>
-            )
-          }}
-          renderItem={(post) => {
-            const item = post.item;
-            return (
-              <View style={styles.card}>
-                <Image style={styles.cardImage} source={{uri:item.image}}/>
-                <View style={styles.cardHeader}>
-                  <View>
-                    <Text style={styles.title}>{item.title}</Text>
-                    <Text style={styles.description}>{item.description}</Text>
-                    <View style={styles.timeContainer}>
-                      <Image style={styles.iconData} source={{uri: 'https://png.icons8.com/color/96/3498db/calendar.png'}}/>
-                      <Text style={styles.time}>{item.time}</Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.cardFooter}>
-                  <View style={styles.socialBarContainer}>
-                    <View style={styles.socialBarSection}>
-                      <TouchableOpacity style={styles.socialBarButton}>
-                        <Image style={styles.icon} source={{uri: 'https://png.icons8.com/material/96/2ecc71/visible.png'}}/>
-                        <Text style={styles.socialBarLabel}>78</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.socialBarSection}>
-                      <TouchableOpacity style={styles.socialBarButton}>
-                        <Image style={styles.icon} source={{uri: 'https://png.icons8.com/ios-glyphs/75/2ecc71/comments.png'}}/>
-                        <Text style={styles.socialBarLabel}>25</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            )
-          }}/>
-          <TouchableOpacity
+      <View style={{flex:1}}>
+      {
+        rowData ?  <SafeAreaView style={styles.container}>
+        <FlatList
+          data={rowData}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+        />
+      </SafeAreaView> :  <ActivityIndicator size="large" color="#00ff00" />
+      }
+       <TouchableOpacity
           onPress={()=>{
-            this.props.navigation.navigate('AddBlog', { name: 'Jane' })
+            props.navigation.navigate('AddBlog')
           }}
-   style={{
-       borderWidth:1,
-       borderColor:'rgba(0,0,0,0.2)',
-       alignItems:'center',
-       justifyContent:'center',
-       width:70,
-       position: 'absolute',                                          
-       bottom: 10,                                                    
-       right: 10,
-       height:70,
-       backgroundColor:'#fff',
-       borderRadius:100,
-     }}
+   style={styles.floadButton}
  >
-   {/* <Icon name="plus"  size={30} color="#01a699" /> */}
+   <Button >
+          <Text style={{fontSize:50}}>+</Text>
+  </Button>
   </TouchableOpacity>
       </View>
-    );
-  }
+    )
 }
 
+
 const styles = StyleSheet.create({
-  container:{
-    flex:1,
-  },
-  list: {
-    paddingHorizontal: 17,
-    backgroundColor:"#E6E6E6",
-  },
-  separator: {
-    marginTop: 10,
-  },
+
   card:{
     shadowColor: '#00000021',
     shadowOffset: {
-      width: 2
+      width: 50
     },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
+    shadowOpacity: 24.5,
+    shadowRadius: 8,
     marginVertical: 8,
     backgroundColor:"white"
   },
@@ -145,11 +114,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 1,
     backgroundColor:"#EEEEEE",
   },
-  cardImage:{
-    flex: 1,
-    height: 150,
-    width: null,
-  },
   title:{
     fontSize:18,
     flex:1,
@@ -161,44 +125,23 @@ const styles = StyleSheet.create({
     marginTop:5,
     marginBottom:5,
   },
-  time:{
-    fontSize:13,
-    color: "#808080",
-    marginTop: 5
-  },
-  icon: {
-    width:25,
-    height:25,
-  },
-  iconData:{
-    width:15,
-    height:15,
-    marginTop:5,
-    marginRight:5
-  },
-  timeContainer:{
-    flexDirection:'row'
-  },
-  /******** social bar ******************/
-  socialBarContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    flex: 1
-  },
-  socialBarSection: {
+  buttonBarSection: {
     justifyContent: 'center',
     flexDirection: 'row',
     flex: 1,
   },
-  socialBarlabel: {
-    marginLeft: 8,
-    alignSelf: 'flex-end',
-    justifyContent: 'center',
-  },
-  socialBarButton:{
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+  floadButton:{
+    borderWidth:1,
+    borderColor:'rgba(0,0,0,0.2)',
+    alignItems:'center',
+    justifyContent:'center',
+    width:70,
+    position: 'absolute',                                          
+    bottom: 10,                                                    
+    right: 10,
+    height:70,
+    backgroundColor:'yellow',
+    borderRadius:100,
   }
 });   
+
